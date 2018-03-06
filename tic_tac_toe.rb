@@ -1,5 +1,7 @@
 class TicTacToe
   attr_reader :gameboard, :current_player
+  
+  WINNING_LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]]
 
   def initialize
     @player1 = Player.new
@@ -8,47 +10,44 @@ class TicTacToe
     @current_player = @player1
   end
 
-  def look_for_winner
-    if gameboard.slots[0].class == Token && gameboard.slots[1].class == Token && gameboard.slots[2].class == Token
-      if gameboard.slots[0].token_owner == gameboard.slots[1].token_owner &&  gameboard.slots[0].token_owner == gameboard.slots[2].token_owner
-        print_winner(gameboard.slots[0].token_owner)
-      end
-    end  
-    if gameboard.slots[3].class == Token && gameboard.slots[4].class == Token && gameboard.slots[5].class == Token
-      if gameboard.slots[3].token_owner == gameboard.slots[4].token_owner &&  gameboard.slots[3].token_owner == gameboard.slots[5].token_owner
-        print_winner(gameboard.slots[3].token_owner)
-      end
+  def start_game
+    puts "Welcome to TicTacToe!"
+    gameboard.draw_board
+    while 1
+      puts "It's #{current_player.player_id}'s turn!"
+      puts "Enter slot number, being 1 the top left corner and 9 bottom right"
+      puts "Enter exit to leave the game"
+      input = gets.chomp
+      input = input_validation(input) 
+      break if input == "exit"
+      place_token(input) 
+      gameboard.draw_board
+      look_for_winner
+      board_full?
+      next_turn
     end
-    if gameboard.slots[6].class == Token && gameboard.slots[7].class == Token && gameboard.slots[8].class == Token
-      if gameboard.slots[6].token_owner == gameboard.slots[7].token_owner &&  gameboard.slots[6].token_owner == gameboard.slots[8].token_owner
-        print_winner(gameboard.slots[6].token_owner)
-      end
+  end
+
+  private
+
+  def board_full?
+    if gameboard.slots.all? {|slot| slot.class == Token }
+      puts "It's a draw!"
+      gameboard.reset_board
     end
-    if gameboard.slots[0].class == Token && gameboard.slots[3].class == Token && gameboard.slots[6].class == Token
-      if gameboard.slots[0].token_owner == gameboard.slots[3].token_owner &&  gameboard.slots[0].token_owner == gameboard.slots[6].token_owner
-        print_winner(gameboard.slots[0].token_owner)
-      end
-    end
-    if gameboard.slots[1].class == Token && gameboard.slots[4].class == Token && gameboard.slots[7].class == Token
-      if gameboard.slots[1].token_owner == gameboard.slots[4].token_owner &&  gameboard.slots[1].token_owner == gameboard.slots[7].token_owner
-        print_winner(gameboard.slots[1].token_owner)
-      end
-    end
-    if gameboard.slots[2].class == Token && gameboard.slots[5].class == Token && gameboard.slots[8].class == Token
-      if gameboard.slots[2].token_owner == gameboard.slots[5].token_owner &&  gameboard.slots[2].token_owner == gameboard.slots[8].token_owner
-        print_winner(gameboard.slots[2].token_owner)
-      end
-    end
-    if gameboard.slots[0].class == Token && gameboard.slots[4].class == Token && gameboard.slots[8].class == Token
-      if gameboard.slots[0].token_owner == gameboard.slots[4].token_owner &&  gameboard.slots[0].token_owner == gameboard.slots[8].token_owner
-        print_winner(gameboard.slots[0].token_owner)
-      end
-    end
-    if gameboard.slots[2].class == Token && gameboard.slots[4].class == Token && gameboard.slots[6].class == Token
-      if gameboard.slots[2].token_owner == gameboard.slots[4].token_owner &&  gameboard.slots[2].token_owner == gameboard.slots[6].token_owner
-        print_winner(gameboard.slots[2].token_owner)
-      end
-    end            
+  end
+
+  def look_for_winner 
+    winner = WINNING_LINES.any? do |line|
+               line.all? do |index|
+               if gameboard.slots[index].class == Token 
+                 gameboard.slots[index].token_owner == current_player.player_id
+               end
+             end
+           end
+    if winner
+      print_winner(current_player.player_id)
+    end           
   end
 
   def print_winner(winner)
@@ -70,7 +69,7 @@ class TicTacToe
     while 1
       while !(input.between?(1,9))
         puts "Please, enter a number between 1 and 9"
-        input = gets.chomp.to_i 
+        input = gets.chomp.to_i
       end
       if gameboard.slots[input - 1].class == Token
         puts "Slot not empty, please enter a different one"
@@ -99,7 +98,7 @@ class TicTacToe
   	  @slots = (1..9).to_a
       @slots.map! { |slot| slot = "empty slot" }
   	end
-
+    
     def draw_board
       slots.each_with_index do |slot, index|
         if index == 2 || index == 5 || index == 8   
@@ -134,19 +133,6 @@ class TicTacToe
 end
 
 my_game = TicTacToe.new
-puts "Welcome to TicTacToe!"
-my_game.gameboard.draw_board
+my_game.start_game
 
-while 1 
-  puts "It's #{my_game.current_player.player_id}'s turn!"
-  puts "Enter slot number, being 1 the top left corner and 9 bottom right"
-  puts "Enter exit to leave the game"
-  input = gets.chomp
-  input = my_game.input_validation(input) 
-  break if input == "exit"
-  my_game.place_token(input) 
-  my_game.gameboard.draw_board
-  my_game.look_for_winner
-  my_game.next_turn
-end
 
